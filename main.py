@@ -2,7 +2,6 @@ import requests
 import time 
 import socket
 import concurrent.futures
-import json
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 import os
@@ -43,29 +42,16 @@ def input_url():
         except Exception as e:
             print('\033[31mAn error occurred:\033[0m', e)
 
-def load_cms_metadata(json_file):
-    with open(json_file, "r") as file:
-        return json.load(file)
-def server_info(res):
-    try:
-        response = res
-        ip_address = get_ip(url)
-        if response.status_code == 200:
-            # Load Time Calculation.
-            server_headers = response.headers
-            server = server_headers.get('Server', 'N/A')
-            os = server_headers.get('X-Powered-By', 'N/A')
+def server_info():
+    ip_address = get_ip(url)
+    server_headers = res.headers
+    server = server_headers.get('Server', 'N/A')
+    os = server_headers.get('X-Powered-By', 'N/A')
 
-            print(f"\033[31mIP Address:\033[0m {ip_address}")
-            print(f"\033[31mServer Software:\033[0m {server}")
-            print(f"\033[31mServer OS:\033[0m {os}")
-        else:
-            print('Failed to fetch URL:', response.status_code)
-            time.sleep(1)
-            exit(1)
-    except requests.exceptions.RequestException as e:
-        print("Error:", e)
-
+    print(f"\033[31mIP Address:\033[0m {ip_address}")
+    print(f"\033[31mServer Software:\033[0m {server}")
+    print(f"\033[31mServer OS:\033[0m {os}")
+       
 def get_ip(url):
     try:
         parsed_url = urlparse(url)
@@ -153,15 +139,17 @@ if __name__ == "__main__":
     start_time = time.time()
     res= requests.get(url)
     print("\nFetching URL...")
-    end_time =  time.time()  if res.status_code == 200 else 0.0
-    load_time = end_time - start_time
-    print(f"\n\033[31mLoad Time:\033[0m {load_time:.1f} seconds")
-    
-     # Reducing load by importing files in the main stack.
-    cms_metadata = load_cms_metadata("src/cms_metadata.json")
+    try: 
+        if res.status_code == 200:
+            end_time =  time.time()
+            load_time = end_time - start_time
+            print(f"\n\033[31mLoad Time:\033[0m {load_time:.1f} seconds")
+            
+    except requests.exceptions.RequestException as e: #it will just throw a bulk of errors anyway
+        print('Failed to fetch URL:', res.status_code)
+        time.sleep(1)
+        exit(0)
 
-    #Init value if CMS Detection skipped.
-    cms_name = "Unknown CMS"
 
     while True:
         list_menu()
@@ -169,7 +157,7 @@ if __name__ == "__main__":
         #switch case task
         if in_usr == '1':
             title()
-            server_info(res)
+            server_info()
         elif in_usr == '2':
             title()
             print("\n[+] Scanning Subdomains...\n")
