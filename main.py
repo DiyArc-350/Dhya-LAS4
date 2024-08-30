@@ -49,16 +49,13 @@ def load_cms_metadata(json_file):
 def server_info(res):
     try:
         response = res
-        end_time = time.time()
         ip_address = get_ip(url)
         if response.status_code == 200:
             # Load Time Calculation.
-            load_time = end_time - start_time
             server_headers = response.headers
             server = server_headers.get('Server', 'N/A')
             os = server_headers.get('X-Powered-By', 'N/A')
 
-            print(f"\n\033[31mLoad Time:\033[0m {load_time:.1f} seconds")
             print(f"\033[31mIP Address:\033[0m {ip_address}")
             print(f"\033[31mServer Software:\033[0m {server}")
             print(f"\033[31mServer OS:\033[0m {os}")
@@ -153,8 +150,13 @@ def list_menu():
 if __name__ == "__main__":
     title()
     url = input_url()
-    res= requests.get(url)
     start_time = time.time()
+    res= requests.get(url)
+    print("\nFetching URL...")
+    end_time =  time.time()  if res.status_code == 200 else 0.0
+    load_time = end_time - start_time
+    print(f"\n\033[31mLoad Time:\033[0m {load_time:.1f} seconds")
+    
      # Reducing load by importing files in the main stack.
     cms_metadata = load_cms_metadata("src/cms_metadata.json")
 
